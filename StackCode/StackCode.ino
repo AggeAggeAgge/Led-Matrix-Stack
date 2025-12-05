@@ -10,10 +10,11 @@ bool direction = true;
 int speed = 4;
 int buttonPin = 2;
 int platformHeight = 4;
+int level = 0;
 
 int blockIndex = 0;
 int blockPos[32] = { 0 };
-int blockWidth[32] = { 0 };
+int blockWidth[32] = { 10 };
 
 void draw(int a) {
 
@@ -23,7 +24,8 @@ void draw(int a) {
   u8g.firstPage();
   do {
     for (int i = 0; i < 32; i++) {
-      u8g.drawFrame(blockPos[i], 4*i, 4, blockWidth[i]);
+      blockWidth[i] = platformWidth;
+      u8g.drawFrame(4 * i, blockPos[i], 4, blockWidth[i]);
     }
   } while (u8g.nextPage());
 }
@@ -56,31 +58,30 @@ void loop(void) {
 
   draw(blockPos);
 
-  if (positionX >= screenWidth - platformWidth) {
+  if (blockPos[blockIndex] >= screenWidth - platformWidth) {
     direction = false;
   }
 
-  if (positionX <= 0) {
+  if (blockPos[blockIndex]  <= 0) {
     direction = true;
   }
 
 
   if (direction == true) {
-    positionX = positionX + speed;
+    blockPos[blockIndex]  = blockPos[blockIndex]  + speed;
   }
 
   if (direction == false) {
-    positionX = positionX - speed;
+    blockPos[blockIndex]  = blockPos[blockIndex]  - speed;
   }
 
   if (digitalRead(buttonPin) == HIGH) {
-    level = level + 5;
-    positionX = 0;
+    blockIndex = blockIndex + 1;
+    blockPos[blockIndex]  = 0;
   }
 
 
 
   // rebuild the picture after some delay
   delay(50);
-}
 }
