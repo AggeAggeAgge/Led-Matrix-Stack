@@ -42,7 +42,7 @@ void setup(void) {
 
   // Assign button Input pin
   pinMode(buttonPin, INPUT);
-
+  
   // assign default color value
   if (u8g.getMode() == U8G_MODE_R3G3B2) {
     u8g.setColorIndex(255);  // white
@@ -86,12 +86,24 @@ void loop(void) {
 
 
   if (digitalRead(buttonPin) == HIGH) {
-    blockIndex = blockIndex + 1;
     
+
+  if (blockPos[blockIndex] < blockPos[blockIndex - 1]) {
+    int diff = blockPos[blockIndex - 1] - blockPos[blockIndex];
+    blockPos[blockIndex] = blockPos[blockIndex] + diff;
+    blockWidth[blockIndex] = blockPos[blockIndex] - diff;
+  }
+
+  blockIndex = blockIndex + 1;
+
     delay(300);
-    platformWidth -= 4;
+  
+    
+
+  
   }
   //------------------------
+
 
 
   // rebuild the picture after some delay
