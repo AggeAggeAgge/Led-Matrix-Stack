@@ -1,110 +1,92 @@
-
 #include "U8glib.h"
 
-U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);  // Display which does not send AC
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 
-
-// Declare all variables
-int screenWidth = 64;
-int platformWidth = 20;
-int positionX = 0;
+// Variables
+int screenHeight = 64;   
+int platformWidth = 20;  
 bool direction = true;
-int speed = 4;
+int speed = 3;
 int buttonPin = 2;
-int platformHeight = 4;
-int level = 0;
-int oldPlatformWidth = 20;
-
 int blockIndex = 0;
-int blockPos[32] = { 0 };
-int blockWidth[32] = { 10 };
+bool gameOver = false;
 
+// Arrayer 
+int blockPos[32] = { 0 };   
+int blockWidth[32] = { 20 }; 
 
-// function to draw stuff to the oled screen, parameters(a: blockPosition) returns: void 
-void draw(int a) {
-
-  // Set the font text on the screen for later
+void draw() {
   u8g.setFont(u8g_font_unifont);
 
+  if (gameOver) {
+    u8g.drawStr(20, 35, "GAME OVER");
+    return;
+  }
 
-  u8g.firstPage();
-  do {
-    for (int i = 0; i < 32; i++) {
-      blockWidth[i] = platformWidth;
-      u8g.drawFrame(4 * i, blockPos[i], 4, blockWidth[i]);
-    }
-  } while (u8g.nextPage());
+  // Draw every block placed so far
+  for (int i = 0; i <= blockIndex; i++) {
+    u8g.drawFrame(4 * i, blockPos[i], 4, blockWidth[i]);
+  }
 }
 
 void setup(void) {
-  // Start serial Monitor
   Serial.begin(9600);
-
-  // Assign button Input pin
   pinMode(buttonPin, INPUT);
+  blockWidth[0] = 20; // Initial size
   
-  // assign default color value
-  if (u8g.getMode() == U8G_MODE_R3G3B2) {
-    u8g.setColorIndex(255);  // white
-  } else if (u8g.getMode() == U8G_MODE_GRAY2BIT) {
-    u8g.setColorIndex(3);  // max intensity
-  } else if (u8g.getMode() == U8G_MODE_BW) {
-    u8g.setColorIndex(1);  // pixel on
-  } else if (u8g.getMode() == U8G_MODE_HICOLOR) {
-    u8g.setHiColorByRGB(255, 255, 255);
-  }
+  // Set display color
+  u8g.setColorIndex(1); 
 }
 
 void loop(void) {
-  // picture loop
-  Serial.println(digitalRead(buttonPin));
-
-  // Draw block att block position
-
-
-
-  // if the blocks hits the right wall, flip the direction
-  if (blockPos[blockIndex] >= screenWidth - platformWidth) {
-    direction = false;
+  if (gameOver) {
+    u8g.firstPage();
+    do { draw(); } while (u8g.nextPage());
+    return;
   }
 
-  // if the blocks hits the left wall, flip the direction
-  if (blockPos[blockIndex]  <= 0) {
-    direction = true;
-  }
+  if (blockPos[blockIndex] >= screenHeight - platformWidth) direction = false;
+  if (blockPos[blockIndex] <= 0) direction = true;
 
-  // Move the block in its designated direction
-  if (direction == true) {
-    blockPos[blockIndex]  = blockPos[blockIndex]  + speed;
-  }
+  if (direction) blockPos[blockIndex] += speed;
+  else blockPos[blockIndex] -= speed;
 
-  if (direction == false) {
-    blockPos[blockIndex]  = blockPos[blockIndex]  - speed;
-  }
-
-  draw(blockPos);
-
+  u8g.firstPage();
+  do {
+    draw();
+  } while (u8g.nextPage());
 
   if (digitalRead(buttonPin) == HIGH) {
+    if (blockIndex > 0) {
+      int prevStart = blockPos[blockIndex - 1];
+      int prevEnd   = blockPos[blockIndex - 1] + blockWidth[blockIndex - 1];
+      int currStart = blockPos[blockIndex];
+      int currEnd   = blockPos[blockIndex] + platformWidth;
+
+      int finalStart = max(prevStart, currStart);
+      int finalEnd   = min(prevEnd, currEnd);
+      int newSize    = finalEnd - finalStart;
+
+      if (newSize <= 0) {
+        gameOver = true;
+      } else {
+        blockPos[blockIndex] = finalStart;
+        blockWidth[blockIndex] = newSize;
+        
+        platformWidth = newSize; 
+        
+        blockIndex++; 
+        blockWidth[blockIndex] = platformWidth; 
+        blockPos[blockIndex] = 0; 
+      }
+    } else {
+      blockWidth[blockIndex] = platformWidth;
+      blockIndex++;
+      blockWidth[blockIndex] = platformWidth;
+      blockPos[blockIndex] = 0;
+    }
     
 
-  if (blockPos[blockIndex] < blockPos[blockIndex - 1]) {
-    int diff = blockPos[blockIndex - 1] - blockPos[blockIndex];
-    blockPos[blockIndex] = blockPos[blockIndex] + diff;
-    blockWidth[blockIndex] = blockPos[blockIndex] - diff;
+    delay(300); // Debounce to prevent multiple triggers
   }
-
-  blockIndex = blockIndex + 1;
-
-    delay(300);
-  
-    
-
-  
-  }
-  //------------------------
-
-
-
-  // rebuild the picture after some delay
 }
