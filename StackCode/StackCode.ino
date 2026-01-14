@@ -12,21 +12,28 @@ int blockIndex = 0;
 bool gameOver = false;
 
 // Arrayer 
-int blockPos[32] = { 0 };   
-int blockWidth[32] = { 20 }; 
+int blockPos[32] = {0};   
+int blockWidth[32] = {20}; 
 
+
+// function that draws to the oled screen
 void draw() {
   u8g.setFont(u8g_font_unifont);
 
+
+  // Game over screen
   if (gameOver) {
     u8g.drawStr(20, 35, "GAME OVER");
     return;
   }
+  //-----------------------------------
+
 
   // Draw every block placed so far
   for (int i = 0; i <= blockIndex; i++) {
     u8g.drawFrame(4 * i, blockPos[i], 4, blockWidth[i]);
   }
+  //---------------------------------
 }
 
 void setup(void) {
