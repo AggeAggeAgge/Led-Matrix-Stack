@@ -3,7 +3,7 @@
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 
 // Variables
-int screenHeight = 64;   
+int screenWidth = 64;   
 int platformWidth = 20;  
 bool direction = true;
 int speed = 3;
@@ -52,11 +52,18 @@ void loop(void) {
     return;
   }
 
-  if (blockPos[blockIndex] >= screenHeight - platformWidth) direction = false;
-  if (blockPos[blockIndex] <= 0) direction = true;
-
-  if (direction) blockPos[blockIndex] += speed;
-  else blockPos[blockIndex] -= speed;
+  if (blockPos[blockIndex] >= screenWidth - platformWidth){
+    direction = false;
+  } 
+  if (blockPos[blockIndex] <= 0) {
+    direction = true;
+  }
+  if (direction) {
+     blockPos[blockIndex] += speed;
+  }
+  else {
+    blockPos[blockIndex] -= speed;
+  } 
 
   u8g.firstPage();
   do {
@@ -73,6 +80,10 @@ void loop(void) {
       int finalStart = max(prevStart, currStart);
       int finalEnd   = min(prevEnd, currEnd);
       int newSize    = finalEnd - finalStart;
+      if (prevEnd == currEnd) {
+        newSize += 2;
+        blockPos[blockIndex - 1] -= 1;
+      }
 
       if (newSize <= 0) {
         gameOver = true;
