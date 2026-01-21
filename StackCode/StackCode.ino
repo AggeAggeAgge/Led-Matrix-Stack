@@ -6,10 +6,13 @@ U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 int screenWidth = 64;   
 int platformWidth = 20;  
 bool direction = true;
-int speed = 3;
+float speed = 3;
 int buttonPin = 2;
 int blockIndex = 0;
 bool gameOver = false;
+const int buzzer = 11; //buzzer to arduino pin 9
+float buzzerTone = 523.251;
+
 
 // Arrayer 
 int blockPos[32] = {0};   
@@ -40,6 +43,7 @@ void setup(void) {
   Serial.begin(9600);
   pinMode(buttonPin, INPUT);
   blockWidth[0] = 20; // Initial size
+  pinMode(buzzer, OUTPUT); 
   
   // Set display color
   u8g.setColorIndex(1); 
@@ -71,6 +75,11 @@ void loop(void) {
   } while (u8g.nextPage());
 
   if (digitalRead(buttonPin) == HIGH) {
+    speed += 0.2;
+    tone(buzzer, buzzerTone);
+    buzzerTone = buzzerTone * 1.0595;
+    buzzerTone = buzzerTone * 1.0595;
+
     if (blockIndex > 0) {
       int prevStart = blockPos[blockIndex - 1];
       int prevEnd   = blockPos[blockIndex - 1] + blockWidth[blockIndex - 1];
@@ -80,10 +89,7 @@ void loop(void) {
       int finalStart = max(prevStart, currStart);
       int finalEnd   = min(prevEnd, currEnd);
       int newSize    = finalEnd - finalStart;
-      if (prevEnd == currEnd) {
-        newSize += 2;
-        blockPos[blockIndex - 1] -= 1;
-      }
+      
 
       if (newSize <= 0) {
         gameOver = true;
@@ -104,7 +110,8 @@ void loop(void) {
       blockPos[blockIndex] = 0;
     }
     
-
     delay(300); // Debounce to prevent multiple triggers
+    noTone(buzzer); 
+
   }
 }
