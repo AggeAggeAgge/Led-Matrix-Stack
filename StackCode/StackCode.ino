@@ -39,6 +39,8 @@ void draw() {
   //---------------------------------
 }
 
+
+// Setup function, runs once. parameters: none returns: none
 void setup(void) {
   Serial.begin(9600);
   pinMode(buttonPin, INPUT);
@@ -49,13 +51,17 @@ void setup(void) {
   u8g.setColorIndex(1); 
 }
 
+//loop function, loops over and over. parameters: none returns: none
 void loop(void) {
+  // Restart
   if (gameOver) {
     u8g.firstPage();
     do { draw(); } while (u8g.nextPage());
     return;
   }
 
+
+  // flip the direction of the block if it hits the endge of the screen.
   if (blockPos[blockIndex] >= screenWidth - platformWidth){
     direction = false;
   } 
@@ -68,12 +74,13 @@ void loop(void) {
   else {
     blockPos[blockIndex] -= speed;
   } 
-
+  // Draw each new page
   u8g.firstPage();
   do {
     draw();
   } while (u8g.nextPage());
 
+  //If button is pressed all this happens, speed increases, piezo tone plays and block is placed at current position, changes block size,
   if (digitalRead(buttonPin) == HIGH) {
     speed += 0.2;
     tone(buzzer, buzzerTone);
@@ -90,7 +97,7 @@ void loop(void) {
       int finalEnd   = min(prevEnd, currEnd);
       int newSize    = finalEnd - finalStart;
       
-
+      // Checks if platform is gone and ends game if its true.
       if (newSize <= 0) {
         gameOver = true;
       } else {
@@ -115,3 +122,4 @@ void loop(void) {
 
   }
 }
+
